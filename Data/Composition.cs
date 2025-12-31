@@ -13,5 +13,5 @@ public class Composition
     public string Description { get; set; }
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
     
-    public override string ToString() => $"{Name} : {Description}" + Roles.Select(role => $"- {role}\n");
+    public override string ToString() => $"{Name} : {Description}\n" + string.Join("\n", Roles.Select(role => $"- {role}"));
 }

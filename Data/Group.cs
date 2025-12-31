@@ -13,5 +13,5 @@ public class Group
     public string Description { get; set; }
     public virtual ICollection<Player> Players { get; set; } = new List<Player>();
     
-    public override string ToString() => $"{Name} : {Description}" + Players.Select(player => $"- {player}\n");
+    public override string ToString() => $"{Name} : {Description}\n" + string.Join("\n", Players.Select(player => $"- {player}"));
 }
