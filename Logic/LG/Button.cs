@@ -1,4 +1,4 @@
-﻿namespace Logic.Games;
+﻿namespace Logic.LG;
 
 public class Button
 {

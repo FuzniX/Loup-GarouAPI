@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Data;
-using Logic.Games;
+using Logic.LG;
 
 namespace Logic.Services;
 
@@ -15,6 +15,7 @@ public class GameService(IServiceScopeFactory scopeFactory)
 
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<LgDbContext>();
+        var roleFactory = scope.ServiceProvider.GetRequiredService<RoleFactoryService>();
         
         var group = dbContext.Groups.FirstOrDefault(g => g.Id == request.Group);
         if (group == null) throw new KeyNotFoundException("Group not found.");
@@ -22,10 +23,8 @@ public class GameService(IServiceScopeFactory scopeFactory)
         var composition = dbContext.Compositions.FirstOrDefault(c => c.Id == request.Composition);
         if (composition == null) throw new KeyNotFoundException("Composition not found.");
 
-        var game = new Game(group, composition);
+        var game = new Game(roleFactory, group, composition);
         _games.TryAdd(gameId, game);
-
-        Console.WriteLine(game);
 
         return gameId;
     }
@@ -39,7 +38,7 @@ public class GameService(IServiceScopeFactory scopeFactory)
         return new GameMasterResponse
         (
             Message: "Test",
-            Buttons: [new Button { Label = "Next", Action = Action.Next.ToCode(), Color = "Blue" }]
+            Buttons: [new Button { Label = "Next", Action = ActionType.Next.ToCode(), Color = "Blue" }]
         );
     }
 }
