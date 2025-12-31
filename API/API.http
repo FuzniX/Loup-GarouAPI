@@ -1,0 +1,25 @@
+@API_HostAddress = https://localhost:7107/api
+
+# New Game
+POST {{API_HostAddress}}/new/
+Content-Type: application/json
+Accept: application/json
+
+{
+    "group": 0,
+    "composition": 0
+}
+
+###
+
+# Go next in game
+@API_GameId = 0a2a924a-d1d4-445f-96bb-19ff57217e26
+POST {{API_HostAddress}}/{{API_GameId}}/next/
+Content-Type: application/json
+Accept: application/json
+
+{
+    "actionCode": "TEST"
+}
+
+###

@@ -1,0 +1,25 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5236",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__DefaultConnection": "Server=data.fuznix.com;Database=s24_LoupGarou;User=u24_uuUJr0jVX4;Password=8aObdHhLC=XYjmB=HfZUaRVN;"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:7107;http://localhost:5236",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__DefaultConnection": "Server=data.fuznix.com;Database=s24_LoupGarou;User=u24_uuUJr0jVX4;Password=8aObdHhLC=XYjmB=HfZUaRVN;"
+      }
+    }
+  }
+}
