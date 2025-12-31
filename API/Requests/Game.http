@@ -1,4 +1,4 @@
-@API_HostAddress = https://localhost:7107/api
+@API_HostAddress = https://localhost:7107/api/game
 
 # New Game
 POST {{API_HostAddress}}/new/

@@ -1,0 +1,21 @@
+﻿@API_HostAddress = https://localhost:7107/api/Composition
+
+# New Composition
+POST {{API_HostAddress}}/new/
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Test",
+  "description": "Super description",
+  "roles": 
+  [
+    "Loup-Garou"
+  ]
+}
+
+###
+
+# Get All Compositions
+GET {{API_HostAddress}}/all
+Accept: application/json

@@ -1,0 +1,16 @@
+﻿@API_HostAddress = https://localhost:7107/api/Player
+
+# New Player
+POST {{API_HostAddress}}/new/
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Nicolas"
+}
+
+###
+
+# Get All Players
+GET {{API_HostAddress}}/all
+Accept: application/json

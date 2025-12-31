@@ -11,11 +11,11 @@ public class GameController(GameService gameService) : BaseApiController
         try
         {
             var gameId = gameService.CreateGame(request);
-            return Ok(new { GameId = gameId });
+            return Accepted(new { GameId = gameId });
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException e)
         {
-            return NotFound("Game not found.");
+            return NotFound(e.Message);
         }
     }
     
@@ -25,7 +25,7 @@ public class GameController(GameService gameService) : BaseApiController
         try
         {
             var response = gameService.Next(id, request);
-            return Ok(response);
+            return Accepted(response);
         }
         catch (KeyNotFoundException)
         {

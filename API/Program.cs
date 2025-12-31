@@ -11,6 +11,10 @@ builder.Services.AddDbContext<LgDbContext>(options =>
 );
 
 builder.Services.AddSingleton<GameService>();
+builder.Services.AddSingleton<CompositionService>();
+builder.Services.AddSingleton<GroupService>();
+builder.Services.AddSingleton<PlayerService>();
+builder.Services.AddSingleton<RoleService>();
 builder.Services.AddControllers();
 
 var app = builder.Build();

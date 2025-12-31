@@ -1,0 +1,19 @@
+﻿@API_HostAddress = https://localhost:7107/api/Role
+
+# New Role
+POST {{API_HostAddress}}/new/
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Loup-Garou",
+  "description": "Test",
+  "imageUrl": "https://test.com",
+  "defaultPriority": 1
+}
+
+###
+
+# Get All Roles
+GET {{API_HostAddress}}/all
+Accept: application/json

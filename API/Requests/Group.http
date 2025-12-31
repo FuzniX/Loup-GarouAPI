@@ -1,0 +1,21 @@
+﻿@API_HostAddress = https://localhost:7107/api/Group
+
+# New Group
+POST {{API_HostAddress}}/new/
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Test",
+  "description": "Super description de groupe",
+  "players": 
+  [
+    "Nicolas"
+  ]
+}
+
+###
+
+# Get All Groups
+GET {{API_HostAddress}}/all
+Accept: application/json
