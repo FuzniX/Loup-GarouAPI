@@ -16,7 +16,7 @@ public class GameService(IServiceScopeFactory scopeFactory)
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<LgDbContext>();
         var roleFactory = scope.ServiceProvider.GetRequiredService<RoleFactoryService>();
-        
+
         var group = dbContext.Groups.FirstOrDefault(g => g.Id == request.Group);
         if (group == null) throw new KeyNotFoundException("Group not found.");
 
@@ -29,18 +29,10 @@ public class GameService(IServiceScopeFactory scopeFactory)
         return gameId;
     }
 
-    public GameMasterResponse Next(string gameId, GameMasterRequest request)
-    {
-        if (!_games.TryGetValue(gameId, out var gameLogic))
+    public GameMasterResponse Next(string gameId, GameMasterRequest request) =>
+        _games.TryGetValue(gameId, out var game) ?
+            game.PlayTurn(request) :
             throw new KeyNotFoundException($"Game with id {gameId} not found.");
-
-        // Example
-        return new GameMasterResponse
-        (
-            Message: "Test",
-            Buttons: [new Button { Label = "Next", Action = ActionType.Next.ToCode(), Color = "Blue" }]
-        );
-    }
 }
 
 public record GameCreationRequest(int Group, int Composition);

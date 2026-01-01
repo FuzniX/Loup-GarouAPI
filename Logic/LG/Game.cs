@@ -5,10 +5,27 @@ namespace Logic.LG;
 
 public class Game
 {
-    private readonly Group _group;
-    private readonly Composition _composition;
+    #region Public Attributes
+    public bool Over => _currentPhase == Phase.Over;
+    #endregion
     
+    #region Private Attributes
     private readonly List<GamePlayer> _players = [];
+    private readonly Dictionary<Phase, List<GamePlayer>> _order = new()
+    {
+        { Phase.RolesBeforeLg, [] },
+        { Phase.RolesAfterLg, [] },
+        { Phase.RolesBeforeVote, [] },
+        { Phase.RolesAfterVote, [] }
+    };
+    private int _day = 1;
+    #endregion
+    
+    #region Game Cursor
+    private Phase _currentPhase = Phase.VillageSleeping;
+    private int _playerIndex = -1;
+    private GamePlayer? _currentPlayer;
+    #endregion
     
     public Game(RoleFactoryService roleFactoryService, Group group, Composition composition)
     {

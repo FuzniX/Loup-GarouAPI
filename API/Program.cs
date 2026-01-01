@@ -15,6 +15,7 @@ builder.Services.AddSingleton<CompositionService>();
 builder.Services.AddSingleton<GroupService>();
 builder.Services.AddSingleton<PlayerService>();
 builder.Services.AddSingleton<RoleService>();
+builder.Services.AddSingleton<RoleFactoryService>();
 builder.Services.AddControllers();
 
 var app = builder.Build();

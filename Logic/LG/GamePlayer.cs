@@ -1,8 +1,9 @@
-﻿using Logic.LG.Roles;
+﻿namespace Logic.LG;
 
-namespace Logic.LG;
-
-public class GamePlayer(string name, GameRole role)
+public class GamePlayer
 {
-    public override string ToString() => $"{name} ({role})";
+    public required string Name { get; init; }
+    public required GameRole Role { get; init; } // Will change later
+
+    public override string ToString() => $"{Name} ({Role})";
 }
