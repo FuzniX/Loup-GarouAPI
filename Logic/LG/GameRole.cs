@@ -28,7 +28,7 @@ public abstract class GameRole
 
     public GameMasterResponse Response(int day) => new(
         Message: $"{Name} se réveille !",
-        Phase: nameof(Phase),
+        Phase: Phase.ToString(),
         Buttons: [Button.Next],
         Candidates: null
     );

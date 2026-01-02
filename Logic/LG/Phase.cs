@@ -45,17 +45,18 @@ public static class PhaseExtensions
             _ => "..."
         };
 
-        public Button Button => phase switch
+        public List<Button> Button => phase switch
         {
-            Phase.Lg => Button.LgChoice,
-            Phase.Vote => Button.Vote,
-            _ => Button.Next
+            Phase.Lg => [Button.LgChoice],
+            Phase.Vote => [Button.Vote],
+            Phase.Over => [],
+            _ => [Button.Next]
         };
 
-        public GameMasterResponse Response => new(phase.Message, nameof(phase), [phase.Button], null);
+        public GameMasterResponse Response => new(phase.Message, phase.ToString(), phase.Button, null);
 
-        public GameMasterResponse MessagedResponse(string message) => new(message, nameof(phase), [phase.Button], null);
+        public GameMasterResponse MessagedResponse(string message) => new(message, phase.ToString(), phase.Button, null);
         
-        public GameMasterResponse CandidatedResponse(List<string> candidates) => new (phase.Message, nameof(phase), [phase.Button], candidates);
+        public GameMasterResponse CandidatedResponse(List<string> candidates) => new (phase.Message, phase.ToString(), phase.Button, candidates);
     }
 }
