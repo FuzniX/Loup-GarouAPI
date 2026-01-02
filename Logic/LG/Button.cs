@@ -1,8 +1,8 @@
 ﻿namespace Logic.LG;
 
-public class Button
+public record Button(string Label, string Action, string Color)
 {
-    public string Label { get; set; } = "";
-    public string Action { get; set; } = "";
-    public string? Color { get; set; }
+    public static Button Next => new("Suivant", nameof(ActionType.Next), "Blue");
+    public static Button LgChoice => new("Victime", nameof(ActionType.LgChoice), "Red");
+    public static Button Vote => new("Vote", nameof(ActionType.Vote), "Green");
 }
