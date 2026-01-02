@@ -6,7 +6,7 @@ namespace API.Controllers;
 public class GameController(GameService gameService) : BaseApiController
 {
     [HttpPost("new")]
-    public IActionResult NewGame([FromBody] GameCreationRequest request)
+    public IActionResult New([FromBody] GameCreationRequest request)
     {
         try
         {
@@ -20,11 +20,11 @@ public class GameController(GameService gameService) : BaseApiController
     }
     
     [HttpPost("{id}/next")]
-    public IActionResult NextStep(string id, [FromBody] GameMasterRequest request)
+    public IActionResult Next(string id, [FromBody] GameMasterRequest? request)
     {
         try
         {
-            var response = gameService.Next(id, request);
+            var response = gameService.Next(id, request ?? new GameMasterRequest(null));
             return Accepted(response);
         }
         catch (KeyNotFoundException)
