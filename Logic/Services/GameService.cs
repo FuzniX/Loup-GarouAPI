@@ -29,12 +29,18 @@ public class GameService(IServiceScopeFactory scopeFactory)
         return gameId;
     }
 
-    public GameMasterResponse Next(string gameId, GameMasterRequest request) =>
-        _games.TryGetValue(gameId, out var game) ?
+    public GameMasterResponse Next(string gameId, GameMasterRequest request)
+    {
+        var response = _games.TryGetValue(gameId, out var game) ?
             game.PlayTurn(request) :
             throw new KeyNotFoundException($"Game with id {gameId} not found.");
+        
+        if (game.Over) _games.Remove(gameId, out _);
+        
+        return response;
+    }
 }
 
 public record GameCreationRequest(int Group, int Composition);
-public record GameMasterRequest(string Action, string? Target);
-public record GameMasterResponse(string Message, List<Button> Buttons);
+public record GameMasterRequest(string? Target);
+public record GameMasterResponse(string Message, string Phase, List<Button> Buttons, List<string>? Candidates);
