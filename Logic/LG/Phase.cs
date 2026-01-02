@@ -1,14 +1,15 @@
-﻿namespace Logic.LG;
+﻿using Logic.Services;
+
+namespace Logic.LG;
 
 public enum Phase
 {
+    Beginning,
     VillageSleeping,
     RolesBeforeLg,
     Lg,
     RolesAfterLg,
     VillageAwakening,
-    VillageAfterVote,
-    Ended
     RolesBeforeVote,
     Vote,
     RolesAfterVote,
@@ -19,8 +20,9 @@ public static class PhaseExtensions
 {
     extension(Phase phase)
     {
-        public Phase Next() => phase switch
+        public Phase Next => phase switch
         {
+            Phase.Beginning => Phase.VillageSleeping,
             Phase.VillageSleeping => Phase.RolesBeforeLg,
             Phase.RolesBeforeLg => Phase.Lg,
             Phase.Lg => Phase.RolesAfterLg,
@@ -31,5 +33,29 @@ public static class PhaseExtensions
             Phase.RolesAfterVote => Phase.VillageSleeping,
             _ => Phase.Over
         };
+
+        public string Message => phase switch
+        {
+            Phase.Beginning => "Début de la partie.",
+            Phase.VillageSleeping => "Le village s'endort.",
+            Phase.Lg => "Les Loups-Garous se réveillent.",
+            Phase.VillageAwakening => "Le village se réveille.",
+            Phase.Vote => "Le village vote.",
+            Phase.Over => "Fin de la partie.",
+            _ => "..."
+        };
+
+        public Button Button => phase switch
+        {
+            Phase.Lg => Button.LgChoice,
+            Phase.Vote => Button.Vote,
+            _ => Button.Next
+        };
+
+        public GameMasterResponse Response => new(phase.Message, nameof(phase), [phase.Button], null);
+
+        public GameMasterResponse MessagedResponse(string message) => new(message, nameof(phase), [phase.Button], null);
+        
+        public GameMasterResponse CandidatedResponse(List<string> candidates) => new (phase.Message, nameof(phase), [phase.Button], candidates);
     }
 }

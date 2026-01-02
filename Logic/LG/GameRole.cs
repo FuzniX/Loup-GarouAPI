@@ -26,7 +26,14 @@ public abstract class GameRole
         Phase = config.Phase;
     }
 
-    public abstract GameMasterResponse Act(GamePlayer roleOwner, GameMasterRequest request, int day);
+    public GameMasterResponse Response(int day) => new(
+        Message: $"{Name} se réveille !",
+        Phase: nameof(Phase),
+        Buttons: [Button.Next],
+        Candidates: null
+    );
+
+    public abstract bool Act(GamePlayer roleOwner, GameMasterRequest request, int day);
 
     public override string ToString() => Name;
 }
