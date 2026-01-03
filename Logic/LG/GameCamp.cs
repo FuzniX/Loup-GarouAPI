@@ -1,6 +1,6 @@
 ﻿namespace Logic.LG;
 
-public enum Camp
+public enum GameCamp
 {
     Village,
     LoupGarou,

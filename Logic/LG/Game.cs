@@ -7,7 +7,7 @@ public class Game
 {
     #region Public Properties
 
-    public bool Over => CurrentPhase == Phase.Over;
+    public bool Over => CurrentPhase == GamePhase.Over;
 
     #endregion
 
@@ -15,12 +15,12 @@ public class Game
 
     private HashSet<GamePlayer> Players { get; } = [];
     private HashSet<GamePlayer> PlayersToDie { get; } = [];
-    private Dictionary<Phase, List<GamePlayer>> Order { get; } = new()
+    private Dictionary<GamePhase, List<GamePlayer>> Order { get; } = new()
     {
-        { Phase.RolesBeforeLg, [] },
-        { Phase.RolesAfterLg, [] },
-        { Phase.RolesBeforeVote, [] },
-        { Phase.RolesAfterVote, [] }
+        { GamePhase.RolesBeforeLg, [] },
+        { GamePhase.RolesAfterLg, [] },
+        { GamePhase.RolesBeforeVote, [] },
+        { GamePhase.RolesAfterVote, [] }
     };
 
     #endregion
@@ -48,7 +48,7 @@ public class Game
     #region Game Cursor
 
     private int Day { get; set; } = 1;
-    private Phase CurrentPhase { get; set; } = Phase.Beginning;
+    private GamePhase CurrentPhase { get; set; } = GamePhase.Beginning;
     private int PlayerIndex { get; set; } = -1;
     private GamePlayer? CurrentPlayer { get; set; }
 
@@ -106,29 +106,37 @@ public class Game
             if (AlivePlayers.Count < 2) CurrentPhase = Phase.Over;
             switch (CurrentPhase)
             {
-                case Phase.Beginning:
+                case GamePhase.Beginning:
                     NextPhase();
                     return CurrentPhase.Response;
 
                 case Phase.VillageSleeping:
                 case Phase.VillageAwakening:
+                case GamePhase.VillageSleeping:
+                case GamePhase.VillageAwakening:
                     KillPlayers(PlayersToDie);
                     NextPhase();
                     continue;
 
                 case Phase.Lg:
                 case Phase.Vote:
+                case GamePhase.Lg:
+                case GamePhase.Vote:
                     if (target != null) PlayersToDie.Add(target);
                     NextPhase();
                     continue;
 
-                case Phase.Over:
-                    return Phase.Over.Response;
+                case GamePhase.Over:
+                    return GamePhase.Over.Response;
 
                 case Phase.RolesBeforeLg:
                 case Phase.RolesAfterLg:
                 case Phase.RolesBeforeVote:
                 case Phase.RolesAfterVote:
+                case GamePhase.RolesBeforeLg:
+                case GamePhase.RolesAfterLg:
+                case GamePhase.RolesBeforeVote:
+                case GamePhase.RolesAfterVote:
                 default:
                     if (CurrentPlayer?.Role.Act(CurrentPlayer, request, Day) is true)
                         CurrentPlayer = NextPlayer;

@@ -20,11 +20,11 @@ public class GameController(GameService gameService) : BaseApiController
     }
     
     [HttpPost("{id}/next")]
-    public IActionResult Next(string id, [FromBody] GameMasterRequest? request)
+    public IActionResult Next(string id, [FromBody] GameMasterRequest request)
     {
         try
         {
-            var response = gameService.Next(id, request ?? new GameMasterRequest(null));
+            var response = gameService.Next(id, request);
             return Accepted(response);
         }
         catch (KeyNotFoundException)

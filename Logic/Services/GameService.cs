@@ -42,5 +42,5 @@ public class GameService(IServiceScopeFactory scopeFactory)
 }
 
 public record GameCreationRequest(int Group, int Composition);
-public record GameMasterRequest(string? Target);
+public record GameMasterRequest(string Phase, string Action, string? Target);
 public record GameMasterResponse(string Message, string Phase, List<Button> Buttons, List<string>? Candidates);

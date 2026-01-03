@@ -1,30 +1,23 @@
-﻿using System.Reflection;
-using Data;
+﻿using Data;
 using Logic.Services;
 
 namespace Logic.LG;
 
-public abstract class GameRole
+public abstract class GameRole(Role definition)
 {
-    private Role Definition { get; }
-    public required Camp Camp { get; init; }
-    public required int OrderIndex { get; init; }
-    public required Phase Phase { get; init; }
+    private Role Definition { get; } = definition;
+    public required GameCamp Camp { get; set; } = Enum.Parse<GameCamp>(definition.Camp.Name);
+    public required int OrderIndex { get; set; } = definition.DefaultPriority;
+    public required GamePhase Phase { get; set; } = Enum.Parse<GamePhase>(definition.Phase.Name);
     public string Name => Definition.Name;
     public string Description => Definition.Description;
-    public string ImageURL => Definition.ImageURL;
+    public string ImageUrl => Definition.ImageUrl;
 
-    protected GameRole(Role definition)
-    {
-        Definition = definition;
-        OrderIndex = definition.DefaultPriority;
-
-        var config = GetType().GetCustomAttribute<RoleIdentifierAttribute>();
-        if (config == null) throw new ArgumentNullException($"{GetType().Name} does not have a RoleIdentifier.");
-
-        Camp = config.Camp;
-        Phase = config.Phase;
-    }
+    // var config = GetType().GetCustomAttribute<RoleIdentifierAttribute>();
+    // if (config == null) throw new ArgumentNullException($"{GetType().Name} does not have a RoleIdentifier.");
+    //
+    // Phase = config.Phase;
+    // Camp = config.Camp;
 
     public GameMasterResponse Response(int day) => new(
         Message: $"{Name} se réveille !",
