@@ -27,7 +27,10 @@ public class Game
 
     #region Utils
 
-    private HashSet<GamePlayer> AlivePlayers => Players.Where(player => !player.Dead).ToHashSet();
+    internal HashSet<GamePlayer> AlivePlayers => Players.Where(player => !player.Dead).ToHashSet();
+
+    private HashSet<GamePlayer> AlivePlayersInCamp(Camp camp) => AlivePlayers.Where(player => player.Role.Camp == camp).ToHashSet();
+
     private GamePlayer? NextPlayer
     {
         get
@@ -41,7 +44,17 @@ public class Game
             return null;
         }
     }
+
+    private GamePlayer? GetPlayer(string? target) => Players.FirstOrDefault(player => player.Name == target);
+
     private string DeadPlayersMessage => "Morts :\n  - " + string.Join("\n  -", PlayersToDie);
+
+    private GameMasterResponse CurrentPhaseResponse => CurrentPhase switch
+    {
+        Phase.VillageAwakening or Phase.VillageSleeping => CurrentPhase.MessagedResponse(CurrentPhase.Message + "\n\n" + DeadPlayersMessage),
+        Phase.Lg or Phase.Vote => CurrentPhase.CandidatedResponse(AlivePlayers.Select(p => p.Name).ToList()),
+        _ => CurrentPhase.Response
+    };
 
     #endregion
 
@@ -70,10 +83,11 @@ public class Game
             var player = new GamePlayer
             {
                 Name = playerRolePair.First.Name,
-                Role = roleFactoryService.New(playerRolePair.Second.Name)
+                Role = roleFactoryService.New(playerRolePair.Second.Name, this)
             };
+            player.Role.Owner = player;
             Players.Add(player);
-            Order[player.Role.Phase].Add(player);
+            if (player.Role.Phase is { } phase) Order[phase].Add(player);
         }
 
         foreach (var phase in Order.Keys)
@@ -84,15 +98,10 @@ public class Game
 
     #region Game Sequence
 
-    private GamePlayer? GetPlayer(string? target) => Players.FirstOrDefault(player => player.Name == target);
-
     private void KillPlayers(HashSet<GamePlayer> players)
     {
         foreach (var player in players)
-        {
-            player.Dead = true;
-            Order[player.Role.Phase].Remove(player);
-        }
+            if (player.Die() && player.Role.Phase is { } phase) Order[phase].Remove(player);
     }
 
     private void NextPhase() => CurrentPhase =
@@ -104,35 +113,27 @@ public class Game
 
     public GameMasterResponse PlayTurn(GameMasterRequest request)
     {
-        var target = GetPlayer(request.Target);
-
         while (true)
         {
-            if (AlivePlayers.Count < 2) CurrentPhase = Phase.Over;
             switch (CurrentPhase)
             {
-                case GamePhase.Beginning:
+                case Phase.Beginning:
                     NextPhase();
                     return CurrentPhase.Response;
 
                 case Phase.VillageSleeping:
                 case Phase.VillageAwakening:
-                case GamePhase.VillageSleeping:
-                case GamePhase.VillageAwakening:
                     KillPlayers(PlayersToDie);
                     NextPhase();
                     continue;
 
                 case Phase.Lg:
                 case Phase.Vote:
-                case GamePhase.Lg:
-                case GamePhase.Vote:
+                    var target = GetPlayer(request.Target);
                     if (target != null) PlayersToDie.Add(target);
                     NextPhase();
                     continue;
 
-                case GamePhase.Over:
-                    return GamePhase.Over.Response;
                 case Phase.Over:
                     return Phase.Over.Response;
 
@@ -141,19 +142,14 @@ public class Game
                 case Phase.RolesBeforeVote:
                 case Phase.RolesAfterVote:
                 default:
-                    if (CurrentPlayer?.Role.Act(CurrentPlayer, request, Day) is true)
+                    if (CurrentPlayer is null || CurrentPlayer.Role.Act(request))
                         CurrentPlayer = NextPlayer;
-                    
-                    if (CurrentPlayer != null) return CurrentPlayer.Role.Response(Day);
+
+                    if (CurrentPlayer != null) return CurrentPlayer.Role.Response;
 
                     NextPhase();
                     CurrentPlayer = null;
-                    return CurrentPhase switch
-                    {
-                        Phase.VillageAwakening or Phase.VillageSleeping => CurrentPhase.MessagedResponse(CurrentPhase.Message + "\n\n" + DeadPlayersMessage),
-                        Phase.Lg or Phase.Vote => CurrentPhase.CandidatedResponse(Players.Select(p => p.Name).ToList()),
-                        _ => CurrentPhase.Response
-                    };
+                    return CurrentPhaseResponse;
             }
         }
     }
