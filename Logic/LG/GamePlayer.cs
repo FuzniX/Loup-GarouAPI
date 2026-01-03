@@ -7,4 +7,6 @@ public class GamePlayer
     public bool Dead { get; set; }
 
     public override string ToString() => $"{Name} ({Role})";
+
+    public bool Die() => Role.Die(); // TODO Couple: Make lover die too, Ancien: no death for once
 }
