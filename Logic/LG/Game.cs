@@ -95,7 +95,12 @@ public class Game
         }
     }
 
-    private void NextPhase() => CurrentPhase = CurrentPhase.Next;
+    private void NextPhase() => CurrentPhase =
+        AlivePlayers.Count == AlivePlayersInCamp(Camp.Village).Count ||
+        AlivePlayers.Count == AlivePlayersInCamp(Camp.LoupGarou).Count ||
+        AlivePlayers.Count < 2 ?
+            Phase.Over :
+            CurrentPhase.Next;
 
     public GameMasterResponse PlayTurn(GameMasterRequest request)
     {
