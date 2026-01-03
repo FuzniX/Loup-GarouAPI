@@ -7,7 +7,7 @@ public class Game
 {
     #region Public Properties
 
-    public bool Over => CurrentPhase == GamePhase.Over;
+    public bool Over => CurrentPhase == Phase.Over;
 
     #endregion
 
@@ -15,12 +15,12 @@ public class Game
 
     private HashSet<GamePlayer> Players { get; } = [];
     private HashSet<GamePlayer> PlayersToDie { get; } = [];
-    private Dictionary<GamePhase, List<GamePlayer>> Order { get; } = new()
+    private Dictionary<Phase, List<GamePlayer>> Order { get; } = new()
     {
-        { GamePhase.RolesBeforeLg, [] },
-        { GamePhase.RolesAfterLg, [] },
-        { GamePhase.RolesBeforeVote, [] },
-        { GamePhase.RolesAfterVote, [] }
+        { Phase.RolesBeforeLg, [] },
+        { Phase.RolesAfterLg, [] },
+        { Phase.RolesBeforeVote, [] },
+        { Phase.RolesAfterVote, [] }
     };
 
     #endregion
@@ -48,7 +48,7 @@ public class Game
     #region Game Cursor
 
     private int Day { get; set; } = 1;
-    private GamePhase CurrentPhase { get; set; } = GamePhase.Beginning;
+    private Phase CurrentPhase { get; set; } = Phase.Beginning;
     private int PlayerIndex { get; set; } = -1;
     private GamePlayer? CurrentPlayer { get; set; }
 
@@ -128,15 +128,13 @@ public class Game
 
                 case GamePhase.Over:
                     return GamePhase.Over.Response;
+                case Phase.Over:
+                    return Phase.Over.Response;
 
                 case Phase.RolesBeforeLg:
                 case Phase.RolesAfterLg:
                 case Phase.RolesBeforeVote:
                 case Phase.RolesAfterVote:
-                case GamePhase.RolesBeforeLg:
-                case GamePhase.RolesAfterLg:
-                case GamePhase.RolesBeforeVote:
-                case GamePhase.RolesAfterVote:
                 default:
                     if (CurrentPlayer?.Role.Act(CurrentPlayer, request, Day) is true)
                         CurrentPlayer = NextPlayer;

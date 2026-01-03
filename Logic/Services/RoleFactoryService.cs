@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Data;
 using Logic.LG;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Logic.Services;
@@ -16,10 +15,7 @@ public class RoleFactoryService
         using var scope = scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<LgDbContext>();
         
-        _definitions = context.Roles
-            .Include(role => role.Camp)
-            .Include(role => role.Phase)
-            .ToDictionary(r => r.Name, r => r);
+        _definitions = context.Roles.ToDictionary(r => r.Name, r => r);
         _types = new Dictionary<string, Type>();
         
         var roleTypes = Assembly.GetExecutingAssembly().GetTypes()
@@ -32,10 +28,10 @@ public class RoleFactoryService
         }
     }
 
-    public GameRole New(string roleName)
+    public GameRole New(string roleName, Game game)
     {
         if (_types.TryGetValue(roleName, out var type))
-            return (GameRole) Activator.CreateInstance(type, _definitions[roleName])!;
+            return (GameRole) Activator.CreateInstance(type, _definitions[roleName], game)!;
         throw new KeyNotFoundException($"No role {roleName} found.");
     }
 }

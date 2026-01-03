@@ -1,4 +1,5 @@
 ﻿using Data;
+using Logic.LG;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,8 +18,8 @@ public class RoleService(IServiceScopeFactory scopeFactory)
             Description = request.Description,
             ImageUrl = request.ImageUrl,
             DefaultPriority = request.DefaultPriority,
-            Camp = dbContext.Camps.First(p => p.Name == request.Camp),
-            Phase = dbContext.Phases.First(p => p.Name == request.Phase)
+            Camp = Enum.Parse<Camp>(request.Camp),
+            Phase = Enum.Parse<Phase>(request.Phase)
         };
 
         dbContext.Roles.Add(role);

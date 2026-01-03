@@ -10,15 +10,15 @@ public abstract class Nameable
     public override string ToString() => $"{Name}";
 }
 
-public class Phase : Nameable
-{
-    public virtual ICollection<Role> Roles { get; init; } = new List<Role>();
-}
-
-public class Camp : Nameable
-{
-    public virtual ICollection<Role> Roles { get; init; } = new List<Role>();
-}
+// public class Phase : Nameable
+// {
+//     public virtual ICollection<Role> Roles { get; init; } = new List<Role>();
+// }
+//
+// public class Camp : Nameable
+// {
+//     public virtual ICollection<Role> Roles { get; init; } = new List<Role>();
+// }
 
 public class Player : Nameable
 {
