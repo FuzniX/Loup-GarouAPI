@@ -38,9 +38,9 @@ public abstract class GameRole(Role definition, Game game)
 
     #region Game Master Response Properties
 
-    public string Message => (CurrentPhase.Night ? $"{Name} se réveille !\n\n" : "") + CurrentPhaseDescription; // TODO Improve by having it correctly said with a "Spelling" field in database
-    public virtual Target? Target => Game.AlivePlayers.Names.Target;
-    public virtual IEnumerable<Button> Buttons => Button.Next;
+    private string Message => (CurrentPhase.Night ? $"{Name} se réveille !\n\n" : "") + CurrentPhaseDescription; // TODO Improve by having it correctly said with a "Spelling" field in database
+    protected virtual Target? Target => Game.AlivePlayers.Names.Target;
+    protected virtual IEnumerable<Button> Buttons => Button.Next;
     public virtual bool ShouldRespond => Phases.Select(rp => rp.Phase).Contains(CurrentPhase);
     public GameMasterResponse Response => new(
         Message: Message,
@@ -49,7 +49,7 @@ public abstract class GameRole(Role definition, Game game)
         Buttons: Buttons
     );
 
-    public IEnumerable<Button> PowerButtons => CanUsePower ?
+    protected IEnumerable<Button> PowerButtons => CanUsePower ?
         Target.UseablePower :
         [Button.UnusedPower];
     
