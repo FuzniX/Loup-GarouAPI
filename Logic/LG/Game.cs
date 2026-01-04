@@ -15,7 +15,7 @@ public class Game
 
     private HashSet<GamePlayer> Players { get; } = [];
     private HashSet<GamePlayer> PlayersToDie { get; } = [];
-    private Dictionary<Phase, List<GamePlayer>> Order { get; } = new()
+    private Dictionary<Phase, List<GameRole>> Order { get; } = new()
     {
         { Phase.RolesBeforeLg, [] },
         { Phase.RolesAfterLg, [] },
@@ -27,45 +27,45 @@ public class Game
 
     #region Utils
 
-    private HashSet<GamePlayer> AlivePlayers => Players.Where(player => !player.Dead).ToHashSet();
+    internal HashSet<GamePlayer> AlivePlayers => Players.Where(player => !player.Dead).ToHashSet();
 
     private HashSet<GamePlayer> AlivePlayersInCamp(Camp camp) => AlivePlayers.Where(player => player.Role.Camp == camp).ToHashSet();
 
-    private GamePlayer? NextPlayer
+    private GameRole? NextRole
     {
         get
         {
-            PlayerIndex++;
+            RoleIndex++;
 
-            var playersInPhase = Order[CurrentPhase];
-            if (PlayerIndex < playersInPhase.Count) return playersInPhase[PlayerIndex];
+            var rolesInPhase = Order[CurrentPhase];
+            if (RoleIndex < rolesInPhase.Count) return rolesInPhase[RoleIndex];
 
-            PlayerIndex = -1;
+            RoleIndex = -1;
             return null;
         }
     }
 
-    private GamePlayer? GetPlayer(string? target) => Players.FirstOrDefault(player => player.Name == target);
+    public GamePlayer? GetPlayer(string? target) => Players.FirstOrDefault(player => player.Name == target);
 
     private string DeadPlayersMessage => PlayersToDie.Count == 0 ? "" : "\n\nMorts :\n  - " + string.Join("\n  - ", PlayersToDie);
 
     private GameMasterResponse Response => CurrentPhase switch
     {
         Phase.VillageAwakening or Phase.VillageSleeping => CurrentPhase.MessagedResponse(CurrentPhase.Message + DeadPlayersMessage),
-        Phase.Lg or Phase.Vote => CurrentPhase.TargetResponse(AlivePlayers.Select(p => p.Name).ToList().OptionalTarget),
-        Phase.Beginning or Phase.Over => CurrentPhase.Response,
-        _ => CurrentPlayer!.Role.Response
+        Phase.Lg or Phase.Vote => CurrentPhase.TargetResponse(AlivePlayers.Names.OptionalTarget),
+        Phase.Beginning or Phase.Over => CurrentPhase.ButtonlessResponse,
+        _ => CurrentRole!.Response
     };
 
     #endregion
 
     #region Game Cursor
 
-    private int Day { get; set; } = 1;
+    internal int Day { get; set; } = 1;
     internal Phase CurrentPhase { get; set; } = Phase.Beginning;
-    private int PlayerIndex { get; set; } = -1;
-    private GamePlayer? CurrentPlayer { get; set; }
-    internal GameMasterRequest CurrentRequest { get; set; }
+    internal GameMasterRequest? CurrentRequest { get; set; }
+    private int RoleIndex { get; set; } = -1;
+    private GameRole? CurrentRole { get; set; }
 
     #endregion
 
@@ -82,19 +82,18 @@ public class Game
 
         foreach (var playerRolePair in groupPlayers.Zip(compositionRoles))
         {
-            var player = new GamePlayer
-            {
-                Name = playerRolePair.First.Name,
-                Role = roleFactoryService.New(playerRolePair.Second.Name, this)
-            };
+            var player = new GamePlayer(
+                name: playerRolePair.First.Name,
+                role: roleFactoryService.New(playerRolePair.Second.Name, this)
+            );
             player.Role.Owner = player;
             Players.Add(player);
             foreach (var rolePhase in player.Role.Phases)
-                Order[rolePhase.Phase].Add(player);
+                Order[rolePhase.Phase].Add(player.Role);
         }
 
         foreach (var phase in Order.Keys)
-            Order[phase].Sort((a, b) => a.Role.OrderIndex.CompareTo(b.Role.OrderIndex));
+            Order[phase].Sort((a, b) => a.OrderIndex.CompareTo(b.OrderIndex));
     }
 
     #endregion
@@ -107,7 +106,7 @@ public class Game
         {
             PlayersToDie.Remove(player);
             foreach (var phase in Order.Keys)
-                Order[phase].Remove(player);
+                Order[phase].Remove(player.Role);
         }
     }
 
@@ -121,7 +120,7 @@ public class Game
     public GameMasterResponse PlayTurn(GameMasterRequest request)
     {
         CurrentRequest = request;
-        if (CurrentRequest.Phase != CurrentPhase) return Response;
+        if (CurrentRequest.Phase != CurrentPhase) return Response!;
         
         while (true)
         {
@@ -152,11 +151,11 @@ public class Game
                 case Phase.RolesBeforeVote:
                 case Phase.RolesAfterVote:
                 default:
-                    if (CurrentPlayer is null || CurrentPlayer.Role.Act())
-                        CurrentPlayer = NextPlayer;
+                    if (CurrentRole is null || CurrentRole.Act())
+                        CurrentRole = NextRole;
 
-                    if (CurrentPlayer is null) NextPhase();
-
+                    if (CurrentRole is null) NextPhase();
+                    else if (!CurrentRole.ShouldRespond) continue;
                     break;
             }
             return Response;
