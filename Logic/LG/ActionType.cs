@@ -4,5 +4,7 @@ public enum ActionType
 {
     Next,
     LgChoice,
-    Vote
+    Vote,
+    PowerUsed,
+    PowerUnused,
 }

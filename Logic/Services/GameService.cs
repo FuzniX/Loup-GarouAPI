@@ -43,8 +43,11 @@ public class GameService(IServiceScopeFactory scopeFactory)
 
 public record GameCreationRequest(int Group, int Composition);
 
-public record GameMasterRequest(Phase Phase, ActionType Action, string? Target);
+public record GameMasterRequest(Phase Phase, ActionType Action, string? Target)
+{
+    public bool IsNext => Action is ActionType.Next && Target is null;
+    public bool IsPowerUnused => Action is ActionType.PowerUnused && Target is null;
+    public bool IsPowerUsed => Action is ActionType.PowerUsed && Target is not null;
+}
 
-public record GameMasterResponse(string Message, string? Image, Phase Phase, List<Button>? Buttons, Target? Target);
-
-public record Target(bool Mandatory, List<string> Candidates);
+public record GameMasterResponse(string Message, string? Image, Phase Phase, IEnumerable<Button>? Buttons);
