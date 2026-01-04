@@ -7,6 +7,14 @@ public static class PhaseExtensions
 {
     extension(Phase phase)
     {
+        public bool Night => phase switch
+        {
+            Phase.RolesBeforeLg or Phase.Lg or Phase.RolesAfterLg => true,
+            _ => false
+        };
+
+        public bool Day => !phase.Night;
+        
         public Phase Next => phase switch
         {
             Phase.Beginning => Phase.VillageSleeping,
@@ -40,12 +48,10 @@ public static class PhaseExtensions
             _ => [Button.Next]
         };
 
-        public GameMasterResponse Response => new(phase.Message, phase.ToString(), phase.Button, null);
+        public GameMasterResponse Response => new(phase.Message, phase, phase.Button, null);
 
-        public GameMasterResponse MessagedResponse(string message) => new(message, phase.ToString(), phase.Button, null);
+        public GameMasterResponse MessagedResponse(string message) => new(message, phase, phase.Button, null);
         
-        public GameMasterResponse CandidatedResponse(List<string> candidates) => new (phase.Message, phase.ToString(), phase.Button, candidates);
+        public GameMasterResponse TargetResponse(Target target) => new (phase.Message, phase, phase.Button, target);
     }
-
-    public static string ToListString<T>(this List<T> list) => $"[{string.Join(", ", list)}]";
 }

@@ -15,11 +15,10 @@ public class RoleService(IServiceScopeFactory scopeFactory)
         var role = new Role
         {
             Name = request.Name,
-            Description = request.Description,
             ImageUrl = request.ImageUrl,
             DefaultPriority = request.DefaultPriority,
-            Camp = Enum.Parse<Camp>(request.Camp),
-            Phase = Enum.Parse<Phase>(request.Phase)
+            Camp = request.Camp,
+            Phases = request.Phases
         };
 
         dbContext.Roles.Add(role);
@@ -32,24 +31,30 @@ public class RoleService(IServiceScopeFactory scopeFactory)
         var dbContext = scope.ServiceProvider.GetRequiredService<LgDbContext>();
 
         var role = dbContext.Roles
-            .Include(role => role.Camp)
-            .Include(role => role.Phase)
+            .Include(role => role.Phases)
             .FirstOrDefault(p => p.Id == id);
         return role is null ?
             throw new KeyNotFoundException($"Role {id} not found") :
-            new RoleGetResponse(role.Id, role.Name, role.Description, role.ImageUrl, role.DefaultPriority, role.Camp.ToString(), role.Phase.ToString());
+            new RoleGetResponse(
+                role.Id,
+                role.Name,
+                role.ImageUrl,
+                role.DefaultPriority,
+                role.Camp,
+                role.Phases);
     }
 
     public List<RoleGetResponse> GetAllRoles()
     {
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<LgDbContext>();
-        
+
         return dbContext.Roles
-            .Select(role => new RoleGetResponse(role.Id, role.Name, role.Description, role.ImageUrl, role.DefaultPriority, role.Camp.ToString(), role.Phase.ToString()))
+            .Select(role => new RoleGetResponse(role.Id, role.Name, role.ImageUrl, role.DefaultPriority, role.Camp, role.Phases))
             .ToList();
     }
 }
 
-public record RoleGetResponse(int Id, string Name, string Description, string ImageUrl, int DefaultPriority, string Camp, string Phase);
-public record RoleCreationRequest(string Name, string Description, string ImageUrl, int DefaultPriority, string Camp, string Phase);
+public record RoleGetResponse(int Id, string Name, string ImageUrl, int DefaultPriority, Camp Camp, ICollection<RolePhase> Phases);
+
+public record RoleCreationRequest(string Name, string ImageUrl, int DefaultPriority, Camp Camp, ICollection<RolePhase> Phases);

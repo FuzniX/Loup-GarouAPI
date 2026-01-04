@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Data;
 using Logic.Services;
 
@@ -16,7 +17,8 @@ builder.Services.AddSingleton<GroupService>();
 builder.Services.AddSingleton<PlayerService>();
 builder.Services.AddSingleton<RoleService>();
 builder.Services.AddSingleton<RoleFactoryService>();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
 app.MapControllers();

@@ -27,7 +27,7 @@ public class Game
 
     #region Utils
 
-    internal HashSet<GamePlayer> AlivePlayers => Players.Where(player => !player.Dead).ToHashSet();
+    private HashSet<GamePlayer> AlivePlayers => Players.Where(player => !player.Dead).ToHashSet();
 
     private HashSet<GamePlayer> AlivePlayersInCamp(Camp camp) => AlivePlayers.Where(player => player.Role.Camp == camp).ToHashSet();
 
@@ -47,13 +47,14 @@ public class Game
 
     private GamePlayer? GetPlayer(string? target) => Players.FirstOrDefault(player => player.Name == target);
 
-    private string DeadPlayersMessage => "Morts :\n  - " + string.Join("\n  -", PlayersToDie);
+    private string DeadPlayersMessage => PlayersToDie.Count == 0 ? "" : "\n\nMorts :\n  - " + string.Join("\n  - ", PlayersToDie);
 
-    private GameMasterResponse CurrentPhaseResponse => CurrentPhase switch
+    private GameMasterResponse Response => CurrentPhase switch
     {
-        Phase.VillageAwakening or Phase.VillageSleeping => CurrentPhase.MessagedResponse(CurrentPhase.Message + "\n\n" + DeadPlayersMessage),
-        Phase.Lg or Phase.Vote => CurrentPhase.CandidatedResponse(AlivePlayers.Select(p => p.Name).ToList()),
-        _ => CurrentPhase.Response
+        Phase.VillageAwakening or Phase.VillageSleeping => CurrentPhase.MessagedResponse(CurrentPhase.Message + DeadPlayersMessage),
+        Phase.Lg or Phase.Vote => CurrentPhase.TargetResponse(AlivePlayers.Select(p => p.Name).ToList().OptionalTarget),
+        Phase.Beginning or Phase.Over => CurrentPhase.Response,
+        _ => CurrentPlayer!.Role.Response
     };
 
     #endregion
@@ -61,7 +62,7 @@ public class Game
     #region Game Cursor
 
     private int Day { get; set; } = 1;
-    private Phase CurrentPhase { get; set; } = Phase.Beginning;
+    internal Phase CurrentPhase { get; set; } = Phase.Beginning;
     private int PlayerIndex { get; set; } = -1;
     private GamePlayer? CurrentPlayer { get; set; }
 
@@ -87,7 +88,8 @@ public class Game
             };
             player.Role.Owner = player;
             Players.Add(player);
-            if (player.Role.Phase is { } phase) Order[phase].Add(player);
+            foreach (var rolePhase in player.Role.Phases)
+                Order[rolePhase.Phase].Add(player);
         }
 
         foreach (var phase in Order.Keys)
@@ -100,8 +102,12 @@ public class Game
 
     private void KillPlayers(HashSet<GamePlayer> players)
     {
-        foreach (var player in players)
-            if (player.Die() && player.Role.Phase is { } phase) Order[phase].Remove(player);
+        foreach (var player in players.Where(player => player.Die()))
+        {
+            PlayersToDie.Remove(player);
+            foreach (var phase in Order.Keys)
+                Order[phase].Remove(player);
+        }
     }
 
     private void NextPhase() => CurrentPhase =
@@ -119,7 +125,7 @@ public class Game
             {
                 case Phase.Beginning:
                     NextPhase();
-                    return CurrentPhase.Response;
+                    break;
 
                 case Phase.VillageSleeping:
                 case Phase.VillageAwakening:
@@ -135,7 +141,7 @@ public class Game
                     continue;
 
                 case Phase.Over:
-                    return Phase.Over.Response;
+                    break;
 
                 case Phase.RolesBeforeLg:
                 case Phase.RolesAfterLg:
@@ -145,12 +151,11 @@ public class Game
                     if (CurrentPlayer is null || CurrentPlayer.Role.Act(request))
                         CurrentPlayer = NextPlayer;
 
-                    if (CurrentPlayer != null) return CurrentPlayer.Role.Response;
+                    if (CurrentPlayer is null) NextPhase();
 
-                    NextPhase();
-                    CurrentPlayer = null;
-                    return CurrentPhaseResponse;
+                    break;
             }
+            return Response;
         }
     }
 

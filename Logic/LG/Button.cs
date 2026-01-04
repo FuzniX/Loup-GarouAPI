@@ -1,8 +1,15 @@
 ﻿namespace Logic.LG;
 
-public record Button(string Label, string Action, string Color)
+public enum Color
 {
-    public static Button Next => new("Suivant", nameof(ActionType.Next), "Blue");
-    public static Button LgChoice => new("Victime", nameof(ActionType.LgChoice), "Red");
-    public static Button Vote => new("Vote", nameof(ActionType.Vote), "Green");
+    Blue,
+    Red,
+    Green
+}
+
+public record Button(string Label, ActionType Action, Color Color)
+{
+    public static Button Next => new("Suivant", ActionType.Next, Color.Blue);
+    public static Button LgChoice => new("Victime", ActionType.LgChoice, Color.Red);
+    public static Button Vote => new("Vote", ActionType.Vote, Color.Green);
 }
