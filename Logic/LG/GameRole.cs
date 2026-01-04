@@ -41,6 +41,7 @@ public abstract class GameRole(Role definition, Game game)
     public List<Button>? Buttons => [Button.Next];
     public GameMasterResponse Response => new(
         Message: Message,
+        Image: ImageUrl,
         Phase: CurrentPhase,
         Buttons: Buttons,
         Target: Target

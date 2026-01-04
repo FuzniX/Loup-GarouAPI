@@ -48,10 +48,10 @@ public static class PhaseExtensions
             _ => [Button.Next]
         };
 
-        public GameMasterResponse Response => new(phase.Message, phase, phase.Button, null);
+        public GameMasterResponse Response => new(phase.Message, null, phase, phase.Button, null);
 
-        public GameMasterResponse MessagedResponse(string message) => new(message, phase, phase.Button, null);
+        public GameMasterResponse MessagedResponse(string message) => new(message, null, phase, phase.Button, null);
         
-        public GameMasterResponse TargetResponse(Target target) => new (phase.Message, phase, phase.Button, target);
+        public GameMasterResponse TargetResponse(Target target) => new (phase.Message, null, phase, phase.Button, target);
     }
 }

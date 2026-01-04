@@ -45,6 +45,6 @@ public record GameCreationRequest(int Group, int Composition);
 
 public record GameMasterRequest(Phase Phase, ActionType Action, string? Target);
 
-public record GameMasterResponse(string Message, Phase Phase, List<Button>? Buttons, Target? Target);
+public record GameMasterResponse(string Message, string? Image, Phase Phase, List<Button>? Buttons, Target? Target);
 
 public record Target(bool Mandatory, List<string> Candidates);
