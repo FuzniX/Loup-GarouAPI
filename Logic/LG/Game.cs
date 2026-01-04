@@ -65,6 +65,7 @@ public class Game
     internal Phase CurrentPhase { get; set; } = Phase.Beginning;
     private int PlayerIndex { get; set; } = -1;
     private GamePlayer? CurrentPlayer { get; set; }
+    internal GameMasterRequest CurrentRequest { get; set; }
 
     #endregion
 
@@ -119,6 +120,9 @@ public class Game
 
     public GameMasterResponse PlayTurn(GameMasterRequest request)
     {
+        CurrentRequest = request;
+        if (CurrentRequest.Phase != CurrentPhase) return Response;
+        
         while (true)
         {
             switch (CurrentPhase)
@@ -148,7 +152,7 @@ public class Game
                 case Phase.RolesBeforeVote:
                 case Phase.RolesAfterVote:
                 default:
-                    if (CurrentPlayer is null || CurrentPlayer.Role.Act(request))
+                    if (CurrentPlayer is null || CurrentPlayer.Role.Act())
                         CurrentPlayer = NextPlayer;
 
                     if (CurrentPlayer is null) NextPhase();

@@ -14,14 +14,24 @@ public abstract class GameRole(Role definition, Game game)
     #endregion
 
     #region Game state dependant properties
+    
+    #region Public Properties
 
     public Camp Camp { get; set; } = definition.Camp;
     public int OrderIndex { get; set; } = definition.DefaultPriority;
     public ICollection<RolePhase> Phases { get; set; } = definition.Phases;
-    private Phase CurrentPhase => game.CurrentPhase;
-    private string CurrentPhaseDescription => Phases.First(rp => rp.Phase == CurrentPhase).Description;
     public required GamePlayer Owner { get; set; }
+    
+    #endregion
 
+    #region Protected Properties
+
+    protected Phase CurrentPhase => game.CurrentPhase;
+    protected string CurrentPhaseDescription => Phases.First(rp => rp.Phase == CurrentPhase).Description;
+    protected GameMasterRequest CurrentRequest => game.CurrentRequest;
+
+    #endregion
+    
     #endregion
 
     #region Game Master Response Properties
@@ -38,7 +48,7 @@ public abstract class GameRole(Role definition, Game game)
 
     #endregion
 
-    public abstract bool Act(GameMasterRequest request);
+    public abstract bool Act();
 
     public bool Die()
     {
