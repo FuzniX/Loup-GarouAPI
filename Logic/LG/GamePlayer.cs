@@ -1,4 +1,5 @@
 ﻿using Data;
+using Logic.LG.Roles.Abstractions;
 
 namespace Logic.LG;
 

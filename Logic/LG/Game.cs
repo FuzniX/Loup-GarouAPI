@@ -1,4 +1,5 @@
 ﻿using Data;
+using Logic.LG.Roles.Abstractions;
 using Logic.Services;
 
 namespace Logic.LG;
@@ -15,7 +16,7 @@ public class Game
 
     private HashSet<GamePlayer> Players { get; } = [];
     private HashSet<GamePlayer> PlayersToDie { get; } = [];
-    private Dictionary<Phase, List<GameRole>> Order { get; } = new()
+    private Dictionary<Phase, List<ActingRole>> Order { get; } = new()
     {
         { Phase.RolesBeforeLg, [] },
         { Phase.RolesAfterLg, [] },
@@ -31,30 +32,16 @@ public class Game
 
     private HashSet<GamePlayer> AlivePlayersInCamp(Camp camp) => AlivePlayers.Where(player => player.Role.Camp == camp).ToHashSet();
 
-    private GameRole? NextRole
-    {
-        get
-        {
-            RoleIndex++;
-
-            var rolesInPhase = Order[CurrentPhase];
-            if (RoleIndex < rolesInPhase.Count) return rolesInPhase[RoleIndex];
-
-            RoleIndex = -1;
-            return null;
-        }
-    }
-
-    public GamePlayer? GetPlayer(string? target) => Players.FirstOrDefault(player => player.Name == target);
+    public GamePlayer? GetPlayer(string? target) => Players.FirstOrDefault(player => player.Name.Equals(target, StringComparison.CurrentCultureIgnoreCase));
 
     private string DeadPlayersMessage => PlayersToDie.Count == 0 ? "" : "\n\nMorts :\n  - " + string.Join("\n  - ", PlayersToDie);
 
-    private GameMasterResponse Response => CurrentPhase switch
+    private GameMasterResponse PhaseResponse => CurrentPhase switch
     {
         Phase.VillageAwakening or Phase.VillageSleeping => CurrentPhase.MessagedResponse(CurrentPhase.Message + DeadPlayersMessage),
         Phase.Lg or Phase.Vote => CurrentPhase.TargetResponse(AlivePlayers.Names.OptionalTarget),
         Phase.Beginning or Phase.Over => CurrentPhase.ButtonlessResponse,
-        _ => CurrentRole!.Response
+        _ => CurrentRole!.AwakeningResponse
     };
 
     #endregion
@@ -65,7 +52,7 @@ public class Game
     internal Phase CurrentPhase { get; set; } = Phase.Beginning;
     internal GameMasterRequest? CurrentRequest { get; set; }
     private int RoleIndex { get; set; } = -1;
-    private GameRole? CurrentRole { get; set; }
+    private ActingRole? CurrentRole { get; set; }
 
     #endregion
 
@@ -86,10 +73,12 @@ public class Game
                 name: playerRolePair.First.Name,
                 role: roleFactoryService.New(playerRolePair.Second.Name, this)
             );
+            
             player.Role.Owner = player;
             Players.Add(player);
-            foreach (var rolePhase in player.Role.Phases)
-                Order[rolePhase.Phase].Add(player.Role);
+            if (player.Role is not ActingRole actingRole) continue;
+            foreach (var rolePhase in actingRole.Phases)
+                Order[rolePhase.Phase].Add(actingRole);
         }
 
         foreach (var phase in Order.Keys)
@@ -100,27 +89,45 @@ public class Game
 
     #region Game Sequence
 
+    #region Helper Methods
+
     private void KillPlayers(HashSet<GamePlayer> players)
     {
         foreach (var player in players.Where(player => player.Die()))
         {
             PlayersToDie.Remove(player);
+            
+            if (player.Role is not ActingRole actingRole) continue;
             foreach (var phase in Order.Keys)
-                Order[phase].Remove(player.Role);
+                Order[phase].Remove(actingRole);
         }
     }
 
-    private void NextPhase() => CurrentPhase =
-        AlivePlayers.Count == AlivePlayersInCamp(Camp.Village).Count ||
-        AlivePlayers.Count == AlivePlayersInCamp(Camp.LoupGarou).Count ||
-        AlivePlayers.Count < 2 ?
-            Phase.Over :
-            CurrentPhase.Next;
+    private void NextPhase()
+    {
+        RoleIndex = -1;
+        CurrentPhase =
+            AlivePlayers.Count == AlivePlayersInCamp(Camp.Village).Count ||
+            AlivePlayers.Count == AlivePlayersInCamp(Camp.LoupGarou).Count ||
+            AlivePlayers.Count < 2 ?
+                Phase.Over :
+                CurrentPhase.Next;
+    }
+    
+    private void NextRole()
+    {
+        var rolesInPhase = Order[CurrentPhase];
+        CurrentRole = ++RoleIndex < rolesInPhase.Count ? rolesInPhase[RoleIndex] : null;
+    }
 
-    public GameMasterResponse PlayTurn(GameMasterRequest request)
+    #endregion
+
+    public List<GameMasterResponse> PlayTurn(GameMasterRequest request)
     {
         CurrentRequest = request;
-        if (CurrentRequest.Phase != CurrentPhase) return Response!;
+        if (CurrentRequest.Phase != CurrentPhase) return [PhaseResponse];
+        
+        var responses = new List<GameMasterResponse>();
         
         while (true)
         {
@@ -131,6 +138,11 @@ public class Game
                     break;
 
                 case Phase.VillageSleeping:
+                    Day++;
+                    KillPlayers(PlayersToDie);
+                    NextPhase();
+                    continue;
+                
                 case Phase.VillageAwakening:
                     KillPlayers(PlayersToDie);
                     NextPhase();
@@ -151,14 +163,24 @@ public class Game
                 case Phase.RolesBeforeVote:
                 case Phase.RolesAfterVote:
                 default:
-                    if (CurrentRole is null || CurrentRole.Act())
-                        CurrentRole = NextRole;
-
-                    if (CurrentRole is null) NextPhase();
+                    if (CurrentRole is not null) // If there is even a role in this Phase
+                    {
+                        var next = CurrentRole.Act(out var roleResponses);
+                        responses.AddRange(roleResponses);
+                        if (next)
+                        {
+                            if (CurrentPhase.Night) responses.Add(CurrentRole.SleepingResponse);
+                            NextRole();
+                        }
+                    }
+                    
+                    if (CurrentRole is null) NextRole(); // Phase started
+                    if (CurrentRole is null) NextPhase(); // Phase ended
                     else if (!CurrentRole.ShouldRespond) continue;
                     break;
             }
-            return Response;
+            responses.Add(PhaseResponse);
+            return responses;
         }
     }
 
