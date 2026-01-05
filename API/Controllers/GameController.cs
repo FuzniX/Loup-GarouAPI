@@ -24,8 +24,7 @@ public class GameController(GameService gameService) : BaseApiController
     {
         try
         {
-            var response = gameService.Next(id, request);
-            return Accepted(response);
+            return Accepted(gameService.Next(id, request));
         }
         catch (KeyNotFoundException)
         {

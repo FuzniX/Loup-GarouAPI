@@ -29,7 +29,7 @@ public class GameService(IServiceScopeFactory scopeFactory)
         return gameId;
     }
 
-    public GameMasterResponse Next(string gameId, GameMasterRequest request)
+    public List<GameMasterResponse> Next(string gameId, GameMasterRequest request)
     {
         var response = _games.TryGetValue(gameId, out var game) ?
             game.PlayTurn(request) :
